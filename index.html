@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Speck</title>
+    <style>
+       #map {
+        height: 600px;
+        width: 100%;
+       }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="block">
+      <label>Address 1</label>
+      <input type = "text"
+             id = "addr1"
+             value = "Los Angeles"
+             size = 50 />
+    </div>
+    <div class="block">
+      <label>Address 2</label>
+      <input type = "text"
+             id = "addr2"
+             value = "San Diego"
+             size = 50 />
+    </div>
+    <div class="block">
+      <!-- well this is awkward -->
+      <label>Distance</label>
+      <input type = "text"
+             id = "scale"
+             value = "distance between the earth and sun"
+             size = 50 />
+    </div>
+    <div class="block">
+      <label>Scale</label>
+      <input type = "text"
+             id = "distance"
+             value = "9001 miles"
+             size = 50 />
+    </div>
+    <div>
+      <input id="submit" type="button" value="submit" onclick="init();" />
+    </div>
+    <div id="map"></div>
+    <script>
+      function initMap(text) {
+        var usa = {lat: 41.566, lng: -93.676};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 5,
+          center: usa
+        });
+        if (typeof text != 'string') return;
+        var lines = text.split("\n");
+        line0 = lines[0].split(":");
+        document.getElementById('distance').value = line0[1] + " miles";
+        document.getElementById('scale').value = document.getElementById('scale').value.split("=")[0].trim() + (" = " + line0[2] + " miles");
+        for (i = 1; i < lines.length; i++) {
+          var sections = lines[i].split(":");
+          new google.maps.Marker({
+            position: {lat:parseFloat(sections[2]), lng:parseFloat(sections[3])},
+            map: map
+          });
+        }
+      }
+      function callback(text) {
+          console.log(text);
+          initMap(text);
+      }
+      function formatParams(params){
+        return "?" + Object
+              .keys(params)
+              .map(function(key){
+                return key+"="+params[key]
+              })
+              .join("&")
+      }
+      function init() {
+        var params = {
+            addr1: document.getElementById('addr1').value,
+            addr2: document.getElementById('addr2').value,
+            scale: document.getElementById('scale').value.split("=")[0]
+        }
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                callback(xmlHttp.responseText);
+            }
+        }
+        xmlHttp.open("GET", 'http://127.0.0.1:5000/'+formatParams(params), true); // true for asynchronous
+        xmlHttp.send(null);
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCitiQLChh6EUhkrxFxNBshIquqvOjehYY&callback=initMap">
+    </script>
+  </body>
+</html>
